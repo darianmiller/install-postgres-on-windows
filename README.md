@@ -4,7 +4,7 @@ PowerShell script to install [PostgreSQL](https://postgresql.org/) from a binary
 - No dependencies
 - MIT Licensed
 - Download binary release zips from EDB: https://www.enterprisedb.com/download-postgresql-binaries
-- Associated blog article can be found here: https://www.ideasawakened.com/
+- Associated blog article can be found here: https://ideasawakened.com/post/2024-02-03-setup-postgresql-on-windows-from-zip
 
 # Summary
 You can simply run the script with the DownloadLatest switch (`Install-Postgres-On-Windows.ps1 -DownloadLatest`) and the latest release zip will be downloaded, then automatically installed to `C:\Postgres`, and you will end up with a new Windows Service named `Postgres` actively running and accepting all local connections on port 5432.  Alternately, manually download the latest release zip and provide it via the ArchiveFileName parameter. (`Install-Postgres-On-Windows.ps1 -ArchiveFileName postgresql-16.1-1-windows-x64-binaries.zip`)
