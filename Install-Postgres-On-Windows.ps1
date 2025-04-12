@@ -43,6 +43,7 @@
     Optional switch to also extract pgAdmin
 #>
 
+[CmdletBinding()]
 param(
     [string]$ArchiveFileName,
     [string]$DestinationPath = "C:\Postgres",
@@ -54,25 +55,44 @@ param(
 )
 
 
-#Latest binary zipfiles are listed first, starting with Windows
-#As of Feb 03, 2024, latest version is: "postgresql-16.1-1-windows-x64-binaries.zip" (331MB)
-#which correlates to:  https://sbp.enterprisedb.com/getfile.jsp?fileid=1258791
+#Latest binary zipfiles are listed first, (usually) starting with Windows
+#As of April 12, 2025, latest version is "postgresql-17.4-1-windows-x64-binaries.zip" (331MB)
+#which correlates to:  https://sbp.enterprisedb.com/getfile.jsp?fileid=1259403
+
 function Get-FirstMatchingDownloadHref {
+    param()
+
     $releasesUri = "https://www.enterprisedb.com/download-postgresql-binaries"
+    Write-Verbose "Fetching download page from '$releasesUri'"
 
-    Write-Verbose "Getting list of release binary packages available from '$releasesUri'"
+    $response = Invoke-WebRequest -Uri $releasesUri
+    $html = $response.Content
 
-    $htmlContent = Invoke-WebRequest -Uri $releasesUri | Select-Object -ExpandProperty Content
+    # Normalize and split HTML
+    $html = $html -replace '><', ">`n<"
+    $htmlLines = $html -replace "`r", "" -split "`n"
+    Write-Verbose ("Downloaded {0} lines of HTML content." -f $htmlLines.Length)
 
-    $regexPattern = 'href=["''](https://sbp.enterprisedb.com/getfile.jsp\?fileid=[^"'']*)["'']'
-    $matches = [regex]::Matches($htmlContent, $regexPattern)
+    $matches = @()
 
-    if ($matches.Count -gt 0) {
-        return $matches[0].Groups[1].Value
+    for ($i = 0; $i -lt $htmlLines.Length; $i++) {
+        $line = $htmlLines[$i]
+
+        if ($line -match '<img[^>]+alt=["'']Windows\s*x86-64["'']') {
+            Write-Verbose ("Found Windows x86-64 <img> on line {0}" -f $i)
+
+            # Look backward to find the <a href=...> wrapping this image
+            for ($j = 1; $j -le 6 -and ($i - $j) -ge 0; $j++) {
+                $prevLine = $htmlLines[$i - $j]
+                if ($prevLine -match '<a[^>]+href=["''](https://sbp\.enterprisedb\.com/getfile\.jsp\?fileid=\d+)["'']') {
+                    $url = $matches[1]
+                    Write-Verbose "Found link before image: $url"
+					return $url
+                }
+            }
+        }
     }
-    else {
-        return $null
-    }
+    return $null
 }
 
 
@@ -81,7 +101,7 @@ function DownloadLatestReleaseFromEDB {
     $Result = ""
   
     Write-Host "- Attempting to download latest binary zip"
-    $downloadUri = Get-FirstMatchingDownloadHref($releasesUri)
+    $downloadUri = Get-FirstMatchingDownloadHref
   
     if ($downloadUri -ne $null) {
   
