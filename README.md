@@ -3,7 +3,7 @@ PowerShell script to install [PostgreSQL](https://postgresql.org/) from a binary
 
 - No dependencies
 - MIT Licensed
-- Download binary release zips from EDB: https://www.enterprisedb.com/download-postgresql-binaries
+- Automatically downloads the latest binary release zip for Windows from EDB: https://www.enterprisedb.com/download-postgresql-binaries
 - Associated blog article can be found here: https://ideasawakened.com/post/2024-02-03-setup-postgresql-on-windows-from-zip
 
 # Summary
@@ -50,3 +50,16 @@ All settings not set by parameters, or listed above in Custom Settings, will uti
 - The default [authentication method](https://www.postgresql.org/docs/current/auth-methods.html) is `trust` which is meant for local workstations, not multi-user servers.
 - The default [max_connections](https://www.postgresql.org/docs/current/runtime-config-connection.html#GUC-MAX-CONNECTIONS) is set automatically by initdb and is typically set to `100`.
 
+
+----
+
+Reminder:
+You can run powershell at a command prompt and pass in ExecutionPolicy to run the script:
+```cmd
+powershell -ExecutionPolicy Bypass -File .\Install-Postgres-On-Windows.ps1 -DestinationPath 'S:\PostgreSQL'
+````
+
+Or at a PowerShell prompt, set the policy via:
+```PowerShell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+````
